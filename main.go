@@ -32,7 +32,7 @@ func mainmenu() {
 	fmt.Println("")
 	fmt.Println("Main Menu")
 	fmt.Println("Press 1 to view all files")
-	// fmt.Println("Press 2 to change directories")
+	fmt.Println("Press 2 to view disk space")
 	fmt.Println("Press 3 to create a file")
 	fmt.Println("Press 4 to delete a file")
 	fmt.Println("Press 5 to view running processes")
@@ -47,7 +47,7 @@ func mainmenu() {
 		view()
 
 	case "2":
-		fmt.Println("Not Yet Implemented")
+		diskspace()
 
 	case "3":
 		create()
@@ -69,20 +69,47 @@ func mainmenu() {
 	case "9":
 		install()
 	default:
+		var errorhandle string
+		fmt.Println("")
 		fmt.Println("Invalid Option")
+		fmt.Println("Press any key to continue")
+		fmt.Scan(&errorhandle)
 		mainmenu()
 	}
 
+}
+
+func diskspace() {
+	listed, _ := exec.Command("ssh", "user2@192.168.56.103", "df", "-ah").Output()
+	fmt.Println("")
+
+	fmt.Println(string(listed))
+	goback()
 }
 
 /*
 	ssh into device, run ls and print the results
 */
 func view() {
+	var selection string
 	listed, _ := exec.Command("ssh", "user2@192.168.56.103", "ls", "-a").Output()
 	fmt.Println("")
 	fmt.Println("Current Files in directory:")
 	fmt.Println(string(listed))
+	fmt.Println("Press 1 to create a file")
+	fmt.Println("Press 2 to delete a file")
+	fmt.Println("Press 3 to go back to the main menu")
+	fmt.Scan(&selection)
+
+	if selection == "1" {
+		create()
+	}
+	if selection == "2" {
+		delete()
+	}
+	if selection == "3" {
+		mainmenu()
+	}
 	goback()
 
 }
@@ -98,25 +125,50 @@ func create() {
 	//SSH and then create file
 	exec.Command("ssh", "user2@192.168.56.103", "touch", filename).Run()
 	fmt.Println("File Successfully Created!")
-
-	fmt.Println("Press 1 to create another file or Press any other key to return")
 	fmt.Println("")
+
+	fmt.Println("Press 1 to create another file")
+	fmt.Println("Press 2 to view all files")
+	fmt.Println("Press 3 to delete a file")
 	fmt.Scan(&selection)
 	if selection == "1" {
 		create()
+	}
+	if selection == "2" {
+		view()
+	}
+	if selection == "3" {
+		delete()
 	} else {
-		mainmenu()
-
+		os.Exit(0)
 	}
 
 }
 
 func delete() {
 	var filename string
+	var selection string
 	fmt.Println("Please enter the name of the file you would like to delete")
 	fmt.Scan(&filename)
-	exec.Command("ssh", "user2@192.168.56.103", "rm", "-r", "-f", filename)
-	goback()
+	exec.Command("ssh", "user2@192.168.56.103", "rm", "-r", "-f", filename).Run()
+	fmt.Println("")
+	fmt.Println("Press 1 to view all files")
+	fmt.Println("Press 2 to delete another file")
+	fmt.Println("Press 3 to return to main menu")
+	fmt.Scan(&selection)
+	if selection == "1" {
+		view()
+
+	}
+	if selection == "2" {
+		delete()
+	}
+	if selection == "3" {
+		mainmenu()
+	} else {
+		os.Exit(0)
+	}
+	// goback()
 
 }
 func listprocesses() {
@@ -146,8 +198,11 @@ func killprocess() {
 }
 
 func sysinfo() {
+	uname, _ := exec.Command("ssh", "user2@192.168.56.103", "uname", "-a").Output()
 	sysinfo, _ := exec.Command("ssh", "user2@192.168.56.103", "lscpu").Output()
 	fmt.Println("")
+	fmt.Println(string(uname))
+	// fmt.Println("")
 	fmt.Println(string(sysinfo))
 	goback()
 }
